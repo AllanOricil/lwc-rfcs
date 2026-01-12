@@ -348,7 +348,60 @@ export default class DataFetcher extends LightningElement {
 - Errors are caught and propagated to nearest suspense boundary
 - Multiple concurrent `suspend()` calls are tracked independently
 
-#### 4. Error Handling
+#### 4. Component Suspense Context
+
+Every LWC component automatically has access to its nearest suspense boundary through the `this.suspense` property. This property is `undefined` if the component is not wrapped in a `<lwc:suspense>` boundary.
+
+```javascript
+import { LightningElement } from "lwc";
+
+export default class MyComponent extends LightningElement {
+  connectedCallback() {
+    if (this.suspense) {
+      // Component is inside a suspense boundary
+      console.log("Is suspended:", this.suspense.isSuspended);
+      console.log("Has error:", this.suspense.hasError);
+      console.log("Pending count:", this.suspense.pendingCount);
+    } else {
+      // Component is not wrapped in suspense
+      console.log("No suspense boundary found");
+    }
+  }
+}
+```
+
+**Available Properties:**
+
+| Property       | Type      | Description                                                  |
+| -------------- | --------- | ------------------------------------------------------------ |
+| `isSuspended`  | `boolean` | `true` if the boundary is currently showing fallback content |
+| `hasError`     | `boolean` | `true` if any child has errored                              |
+| `pendingCount` | `number`  | Number of children currently suspended                       |
+| `hasTimedOut`  | `boolean` | `true` if the timeout has been exceeded                      |
+
+**Use Cases:**
+
+1. **Conditional Behavior**: Components can adapt their behavior based on whether they're in a suspense boundary
+2. **Debugging**: Log suspense state during development
+3. **Analytics**: Track loading performance at the component level
+4. **Progressive Enhancement**: Components can opt into simpler rendering when suspense is handling loading states
+
+```javascript
+// Example: Skip local loading state if suspense is handling it
+export default class SmartComponent extends LightningElement {
+  showLocalSpinner = false;
+
+  @wire(getData)
+  wiredData({ data, error }) {
+    // Only show local spinner if not in suspense
+    this.showLocalSpinner = !this.suspense && !data && !error;
+  }
+}
+```
+
+This property is read-only and automatically maintained by the framework. Components cannot modify the suspense boundary state through this property.
+
+#### 5. Error Handling
 
 Errors in suspended components are caught by the nearest `<lwc:suspense>` boundary:
 
@@ -373,7 +426,7 @@ export default class ErrorDisplay extends LightningElement {
 }
 ```
 
-#### 5. Events
+#### 6. Events
 
 Suspense boundaries dispatch events at key lifecycle points:
 
