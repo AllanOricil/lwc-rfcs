@@ -3,7 +3,7 @@ title: Async Boundaries for Lightning Web Components
 status: DRAFTED
 created_at: 2025-01-12
 updated_at: 2025-01-12
-pr:
+pr: https://github.com/salesforce/lwc-rfcs/pull/94
 ---
 
 # Async Boundaries for Lightning Web Components
